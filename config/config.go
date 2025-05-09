@@ -1,7 +1,10 @@
 package config
 
 import (
+	"fmt"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -11,8 +14,22 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		fmt.Printf("Warning: .env file not found: %v\n", err)
+	}
+
+	// Construct PostgreSQL URL from environment variables
+	postgresURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		getEnv("POSTGRES_USER", "postgres"),
+		getEnv("POSTGRES_PASSWORD", ""),
+		getEnv("POSTGRES_HOST", "localhost"),
+		getEnv("POSTGRES_PORT", "5432"),
+		getEnv("POSTGRES_DB", "chat_app"),
+	)
+
 	return &Config{
-		PostgresURL: getEnv("POSTGRES_URL", "postgres://postgres:0937491454az@localhost:5432/chat_app?sslmode=disable"),
+		PostgresURL: postgresURL,
 		RedisAddr:   getEnv("REDIS_ADDR", "localhost:6379"),
 		Port:        getEnv("PORT", "8080"),
 	}
